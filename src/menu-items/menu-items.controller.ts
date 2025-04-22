@@ -1,0 +1,120 @@
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { Acccount, ResponseMessage } from 'src/decorator/customize'
+import { AccountAuthGuard } from 'src/guard/account.guard'
+import { IAccount } from 'src/guard/interface/account.interface'
+import { UpdateResult } from 'typeorm'
+import { ResultPagination } from 'src/interface/resultPagination.interface'
+import { MenuItemsService } from './menu-items.service'
+import { CreateMenuItemsDto } from './dto/create-menu-items.dto'
+import { MenuItemsEntity } from './entities/menu-items.entity'
+import { UpdateMenuItemsDto } from './dto/update-menu-items.dto'
+import { UpdateStatusMenuItemsDto } from './dto/update-status-menu-items.dto'
+@Controller('menu-items')
+export class MenuItemsController {
+  constructor(private readonly menuItemsService: MenuItemsService) { }
+
+  @Post()
+  @ResponseMessage('Thêm menu thành công')
+  @UseGuards(AccountAuthGuard)
+  async createMenuItems(
+    @Body() createMenuItemsDto: CreateMenuItemsDto,
+    @Acccount() account: IAccount
+  ): Promise<MenuItemsEntity> {
+    return this.menuItemsService.createMenuItems(createMenuItemsDto, account)
+  }
+
+  @Patch()
+  @ResponseMessage('Cập nhật menu thành công')
+  @UseGuards(AccountAuthGuard)
+  async updateMenuItems(
+    @Body() updateMenuItemsDto: UpdateMenuItemsDto,
+    @Acccount() account: IAccount
+  ): Promise<UpdateResult> {
+    return this.menuItemsService.updateMenuItems(updateMenuItemsDto, account)
+  }
+
+  @Get()
+  @ResponseMessage('Lấy danh sách menu thành công')
+  @UseGuards(AccountAuthGuard)
+  async findAll(
+    @Query('current') pageIndex: string,
+    @Query('pageSize') pageSize: string,
+    @Query('mitems_name') mitems_name: string,
+    @Acccount() account: IAccount
+  ): Promise<ResultPagination<MenuItemsEntity>> {
+    return await this.menuItemsService.findAll(
+      {
+        mitems_name,
+        pageSize: +pageSize,
+        pageIndex: +pageIndex
+      },
+      account
+    )
+  }
+
+  @Get('menu-name')
+  @ResponseMessage('Lấy danh sách tên menu thành công')
+  @UseGuards(AccountAuthGuard)
+  async findAllCatName(@Acccount() account: IAccount): Promise<MenuItemsEntity[]> {
+    return await this.menuItemsService.findAllItemsName(account)
+  }
+
+  @Get('/recycle')
+  @ResponseMessage('Lấy danh sách menu đã xóa thành công')
+  @UseGuards(AccountAuthGuard)
+  async findAllRecycle(
+    @Query('current') pageIndex: string,
+    @Query('pageSize') pageSize: string,
+    @Query('mitems_name') mitems_name: string,
+    @Acccount() account: IAccount
+  ): Promise<ResultPagination<MenuItemsEntity>> {
+    return await this.menuItemsService.findAllRecycle(
+      {
+        mitems_name,
+        pageSize: +pageSize,
+        pageIndex: +pageIndex
+      },
+      account
+    )
+  }
+
+  @Patch('update-status')
+  @ResponseMessage('Cập nhật trạng thái menu thành công')
+  @UseGuards(AccountAuthGuard)
+  async updateStatusMenuItems(
+    @Body() updateStatusMenuItemsDto: UpdateStatusMenuItemsDto,
+    @Acccount() account: IAccount
+  ): Promise<UpdateResult> {
+    return this.menuItemsService.updateStatusMenuItems(updateStatusMenuItemsDto, account)
+  }
+
+  @Patch('restore/:mitems_id')
+  @ResponseMessage('Khôi phục menu thành công')
+  @UseGuards(AccountAuthGuard)
+  async restoreMenuItems(
+    @Param('mitems_id') mitems_id: string,
+    @Acccount() account: IAccount
+  ): Promise<UpdateResult> {
+    return this.menuItemsService.restoreMenuItems(mitems_id, account)
+  }
+
+  @Delete(':mitems_id')
+  @ResponseMessage('Xóa menu thành công')
+  @UseGuards(AccountAuthGuard)
+  async deleteMenuItems(
+    @Param('mitems_id') mitems_id: string,
+    @Acccount() account: IAccount
+  ): Promise<UpdateResult> {
+    return this.menuItemsService.deleteMenuItems(mitems_id, account)
+  }
+
+  @Get(':mitems_id')
+  @UseGuards(AccountAuthGuard)
+  @ResponseMessage('Lấy thông tin menu thành công')
+  async findOneById(
+    @Param('mitems_id') mitems_id: string,
+    @Acccount() account: IAccount
+  ): Promise<MenuItemsEntity> {
+    return this.menuItemsService.findOneById(mitems_id, account)
+  }
+}

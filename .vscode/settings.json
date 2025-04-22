@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "POSTGRES",
+            "connectString": "postgres://avnadmin:AVNS_1OsX3Ol7nY47D5aQUuK@pg-102d6f8e-vminhduc8-88ed.h.aivencloud.com:13890/defaultdb?sslmode=require"
+        }
+    ]
+}
