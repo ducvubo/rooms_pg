@@ -12,12 +12,10 @@ import {
 import { TicketGuestRestaurantModule } from './ticket-guest-restaurant/ticket-guest-restaurant.module'
 import { TickGuestRestaurantReplicesModule } from './tick-guest-restaurant-replices/tick-guest-restaurant-replices.module'
 import { TicketGuestRestaurantReplicesEntity, TicketGuestRestaurantReplicesSubscriber } from './tick-guest-restaurant-replices/entities/tick-guest-restaurant-replices.entity'
-import { MenuCategoryModule } from './menu-category/menu-category.module';
 import { MenuItemsModule } from './menu-items/menu-items.module';
 import { AmenitiesModule } from './amenities/amenities.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { AmenitiesEntity, AmenitiesSubscriber } from './amenities/entities/amenities.entity'
-import { MenuCategoryEntity, MenuCategorySubscriber } from './menu-category/entities/menu-category.entity'
 import { MenuItemsEntity, MenuItemsSubscriber } from './menu-items/entities/menu-items.entity'
 import { RoomsEntity, RoomsSubscriber } from './rooms/entities/rooms.entity'
 
@@ -37,7 +35,6 @@ import { RoomsEntity, RoomsSubscriber } from './rooms/entities/rooms.entity'
         TicketGuestRestaurantEntity,
         TicketGuestRestaurantReplicesEntity,
         AmenitiesEntity,
-        MenuCategoryEntity,
         MenuItemsEntity,
         RoomsEntity
       ],
@@ -45,7 +42,6 @@ import { RoomsEntity, RoomsSubscriber } from './rooms/entities/rooms.entity'
         TicketGuestRestaurantSubscriber,
         TicketGuestRestaurantReplicesSubscriber,
         AmenitiesSubscriber,
-        MenuCategorySubscriber,
         MenuItemsSubscriber,
         RoomsSubscriber
       ],
@@ -83,7 +79,6 @@ uRh9HLbED2h+MekS2VLQ+qYA5Ocyd/yRXTON+YjT02yYIW/nKQ==
     UploadModule,
     TicketGuestRestaurantModule,
     TickGuestRestaurantReplicesModule,
-    MenuCategoryModule,
     MenuItemsModule,
     AmenitiesModule,
     RoomsModule

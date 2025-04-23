@@ -1,4 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import {
+  Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common'
 import { Acccount, ResponseMessage } from 'src/decorator/customize'
 import { AccountAuthGuard } from 'src/guard/account.guard'
 import { IAccount } from 'src/guard/interface/account.interface'
@@ -9,6 +12,9 @@ import { CreateMenuItemsDto } from './dto/create-menu-items.dto'
 import { MenuItemsEntity } from './entities/menu-items.entity'
 import { UpdateMenuItemsDto } from './dto/update-menu-items.dto'
 import { UpdateStatusMenuItemsDto } from './dto/update-status-menu-items.dto'
+import { ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger'
+import { FileInterceptor } from '@nestjs/platform-express';
+
 @Controller('menu-items')
 export class MenuItemsController {
   constructor(private readonly menuItemsService: MenuItemsService) { }
@@ -50,6 +56,30 @@ export class MenuItemsController {
       },
       account
     )
+  }
+
+  @Post('/import-menu-image')
+  @ApiOperation({ summary: 'Nhận diện thực đơn từ ảnh' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Tải lên ảnh menu để nhận diện',
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('image'))
+  @ResponseMessage('Nhận diện thực đơn từ ảnh thành công')
+  async importMenuImage(@UploadedFile() file: Express.Multer.File): Promise<any> {
+    if (!file) {
+      throw new Error('Không có file được tải lên');
+    }
+    return await this.menuItemsService.extractMenuFromImage(file.buffer);
   }
 
   @Get('menu-name')

@@ -30,8 +30,11 @@ export class RoomsEntity extends SampleEntity {
   @Column('int')
   room_max_guest?: number
 
-  @Column('int')
+  @Column('int', { default: 0 })
   room_base_price?: number
+
+  @Column('int', { default: 0 })
+  room_deposit?: number
 
   @Column('varchar', { length: 255 })
   room_area?: string

@@ -23,6 +23,10 @@ export class CreateRoomsDto {
   @IsNotEmpty({ message: 'Giá cơ bản không được để trống' })
   room_base_price: number
 
+  @IsNumber({}, { message: 'Tiền đặt cọc phải là số' })
+  @IsOptional()
+  room_deposit: number
+
   // room_note
   @IsOptional()
   @IsString({ message: 'Ghi chú phải là chuỗi' })

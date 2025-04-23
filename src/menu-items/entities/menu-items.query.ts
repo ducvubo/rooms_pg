@@ -141,36 +141,6 @@ export class MenuItemsQuery {
       const totalPages = Math.ceil(totalRecords / pageSize)
       const results = hits.map((hit) => hit._source) as MenuItemsEntity[]
 
-      for (let i = 0; i < results.length; i++) {
-        const result = await this.elasticSearch.search({
-          index: MENU_CATEGORY_ELASTICSEARCH_INDEX,
-          body: {
-            query: {
-              bool: {
-                must: [
-                  {
-                    match: {
-                      mcat_id: {
-                        query: results[i].mcat_id,
-                        operator: 'and'
-                      }
-                    }
-                  },
-                  {
-                    match: {
-                      mcat_res_id: {
-                        query: account.account_restaurant_id,
-                        operator: 'and'
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        })
-        results[i].category = result.hits?.hits[0]?._source || {}
-      }
 
       return {
         meta: {

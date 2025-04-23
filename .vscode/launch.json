@@ -4,7 +4,7 @@
     {
    "type": "node",
       "request": "launch",
-      "name": "Debug Book PG",
+      "name": "Debug Rooms PG",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start:debug", "--", "--inspect-brk"],
       // "runtimeArgs": ["run", "dev1"],

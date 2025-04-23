@@ -1,10 +1,6 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 export class CreateMenuItemsDto {
-  @IsNotEmpty({ message: 'Id danh mục không được để trống' })
-  @IsString({ message: 'Id danh mục phải là chuỗi' })
-  mcat_id: string
-
   @IsNotEmpty({ message: 'Tên danh mục không được để trống' })
   @IsString({ message: 'Tên danh mục phải là chuỗi' })
   mitems_name: string

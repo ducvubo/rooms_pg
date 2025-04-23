@@ -10,14 +10,14 @@ import { CreateMenuItemsDto } from './dto/create-menu-items.dto'
 import { MenuItemsEntity } from './entities/menu-items.entity'
 import { UpdateStatusMenuItemsDto } from './dto/update-status-menu-items.dto'
 import { UpdateMenuItemsDto } from './dto/update-menu-items.dto'
-import { MenuCategoryQuery } from 'src/menu-category/entities/menu-category.query'
+import { callGeminiAPI } from 'src/utils/gemini.api'
+import { createWorker } from 'tesseract.js'
 
 @Injectable()
 export class MenuItemsService {
   constructor(
     private readonly menuItemsRepo: MenuItemsRepo,
     private readonly menuItemsQuery: MenuItemsQuery,
-    private readonly menuCategoryQuery: MenuCategoryQuery
   ) { }
 
   async createMenuItems(
@@ -25,12 +25,7 @@ export class MenuItemsService {
     account: IAccount
   ): Promise<MenuItemsEntity> {
     try {
-      const menuCategoryExist = await this.menuCategoryQuery.findOneById(createMenuItemsDto.mcat_id, account)
-      if (!menuCategoryExist) {
-        throw new BadRequestError('Danh mục menu không tồn tại')
-      }
       return await this.menuItemsRepo.createMenuItems({
-        mcat_id: createMenuItemsDto.mcat_id,
         mitems_name: createMenuItemsDto.mitems_name,
         mitems_price: createMenuItemsDto.mitems_price,
         mitems_image: createMenuItemsDto.mitems_image,
@@ -76,12 +71,7 @@ export class MenuItemsService {
       if (!menuItemsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      const menuCategoryExist = await this.menuCategoryQuery.findOneById(updateMenuItemsDto.mcat_id, account)
-      if (!menuCategoryExist) {
-        throw new BadRequestError('Danh mục menu không tồn tại')
-      }
       return this.menuItemsRepo.updateMenuItems({
-        mcat_id: updateMenuItemsDto.mcat_id,
         mitems_name: updateMenuItemsDto.mitems_name,
         mitems_price: updateMenuItemsDto.mitems_price,
         mitems_image: updateMenuItemsDto.mitems_image,
@@ -270,4 +260,90 @@ export class MenuItemsService {
       throw new ServerErrorDefault(error)
     }
   }
+
+  async extractMenuFromImage(imageBuffer: Buffer): Promise<{
+    mitems_name: string
+    mitems_price: number
+    mitems_note: string
+    mitems_description: string
+  }[]> {
+    const worker = await createWorker('eng+vie'); // Support both English and Vietnamese
+    try {
+      const { data: { text } } = await worker.recognize(imageBuffer);
+
+      const prompt = `
+Below is raw text extracted from a restaurant menu image via OCR, which may contain spelling errors or extra characters. Analyze and convert it into JSON format according to the following requirements:
+
+1. Data normalization:
+   - Dish name: Fix Vietnamese spelling errors (e.g., "mudng" to "muống", "nom" to "nộm"), capitalize the first letter of each word, remove extra characters like "wi", "wit", "&".
+   - Price: Normalize to an integer (e.g., "50000" to 50000, "50,000 VND" to 50000). If unclear, set to null.
+   - Description: If there's no clear information or only stray characters (e.g., "wi", "wd"), set to null. If meaning can be inferred, keep it concise.
+
+2. JSON format:
+   - Return an array of objects with the fields:
+     - "name" (dish name, string),
+     - "price" (price, number or null),
+     - "description" (description, string or null).
+
+3. Return only JSON, no explanations or markdown symbols.
+
+Raw text:
+${text}
+    `;
+
+      const menuData = await callGeminiAPI(prompt);
+
+      if (!menuData) {
+        await worker.terminate();
+        return [];
+      }
+
+      let cleanedText = menuData
+        .replace(/```json|```/g, '')
+        .replace(/^\s*[\r\n]+|[\r\n]+\s*$/g, '')
+        .trim();
+
+      let parsedData;
+      try {
+        parsedData = JSON.parse(cleanedText);
+      } catch (parseError) {
+        await worker.terminate();
+        return [];
+      }
+
+      if (!Array.isArray(parsedData)) {
+        console.error('❌ Returned data is not an array:', parsedData);
+        await worker.terminate();
+        return [];
+      }
+
+      const result: {
+        mitems_name: string
+        mitems_price: number
+        mitems_note: string
+        mitems_description: string
+      }[] = parsedData.map((item: any) => ({
+        mitems_name: typeof item.name === 'string' ? item.name : '',
+        mitems_price: typeof item.price === 'number' ? item.price : 0,
+        mitems_note: typeof item.description === 'string' ? item.description : '',
+        mitems_description: typeof item.description === 'string' ? item.description : '',
+      }));
+
+      await worker.terminate();
+      return result;
+    } catch (error) {
+      await worker.terminate();
+      saveLogSystem({
+        action: 'extractMenuFromImage',
+        class: 'DishesService',
+        function: 'extractMenuFromImage',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      });
+      throw new ServerErrorDefault(error);
+    }
+  }
+
 }

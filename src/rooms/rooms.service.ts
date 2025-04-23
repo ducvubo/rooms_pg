@@ -4,7 +4,6 @@ import { saveLogSystem } from 'src/log/sendLog.els'
 import { BadRequestError, ServerErrorDefault } from 'src/utils/errorResponse'
 import { UpdateResult } from 'typeorm'
 import { ResultPagination } from 'src/interface/resultPagination.interface'
-import { MenuCategoryQuery } from 'src/menu-category/entities/menu-category.query'
 import { RoomsRepo } from './entities/rooms.repo'
 import { RoomsQuery } from './entities/rooms.query'
 import { CreateRoomsDto } from './dto/create-rooms.dto'
@@ -34,6 +33,7 @@ export class RoomsService {
         room_description: createRoomsDto.room_description,
         room_images: createRoomsDto.room_images,
         room_res_id: account.account_restaurant_id,
+        room_deposit: createRoomsDto.room_deposit,
         createdBy: account.account_employee_id ? account.account_employee_id : account.account_restaurant_id
       })
     } catch (error) {
@@ -81,6 +81,7 @@ export class RoomsService {
         room_note: updateRoomsDto.room_note,
         room_description: updateRoomsDto.room_description,
         room_images: updateRoomsDto.room_images,
+        room_deposit: updateRoomsDto.room_deposit,
         updatedBy: account.account_employee_id ? account.account_employee_id : account.account_restaurant_id,
         room_res_id: account.account_restaurant_id,
         room_id: updateRoomsDto.room_id

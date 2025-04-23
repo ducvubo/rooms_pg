@@ -1,5 +1,4 @@
 import { MENU_ITEMS_ELASTICSEARCH_INDEX } from 'src/constants/index.elasticsearch'
-import { MenuCategoryEntity } from 'src/menu-category/entities/menu-category.entity'
 import { addDocToElasticsearch, updateDocByElasticsearch } from 'src/utils/elasticsearch'
 import { SampleEntity } from 'src/utils/sample.entity'
 import {
@@ -23,9 +22,6 @@ export class MenuItemsEntity extends SampleEntity {
   @Column('varchar', { length: 24 })
   mitems_res_id?: string
 
-  @Column('uuid')
-  mcat_id?: string
-
   @Column('varchar', { length: 255 })
   mitems_name?: string
 
@@ -44,9 +40,6 @@ export class MenuItemsEntity extends SampleEntity {
   @Column('varchar', { length: 255, default: 'enable' })
   mitems_status?: 'enable' | 'disable'
 
-  @ManyToOne(() => MenuCategoryEntity, (category) => category.menuItems)
-  @JoinColumn({ name: 'mcat_id' })
-  category?: MenuCategoryEntity
 }
 
 @EventSubscriber()
