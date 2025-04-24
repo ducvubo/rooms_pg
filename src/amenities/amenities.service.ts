@@ -257,4 +257,21 @@ export class AmenitiesService {
       throw new ServerErrorDefault(error)
     }
   }
+
+  async findAllAmenitiesByResId({ ame_res_id }: { ame_res_id: string }): Promise<AmenitiesEntity[]> {
+    try {
+      return this.amenitiesQuery.getAmenitiesByRestaurantId({ ame_res_id })
+    } catch (error) {
+      saveLogSystem({
+        action: 'findAllAmenitiesByResId',
+        class: 'AmenitiesService',
+        function: 'findAllAmenitiesByResId',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
 }

@@ -225,4 +225,66 @@ export class MenuItemsQuery {
       throw new ServerErrorDefault(error)
     }
   }
+
+  async getMenuItemsByRestaurantId({ mitems_res_id }: { mitems_res_id: string }): Promise<MenuItemsEntity[]> {
+    try {
+      const indexExist = await indexElasticsearchExists(MENU_ITEMS_ELASTICSEARCH_INDEX)
+
+      if (!indexExist) {
+        return []
+      }
+
+      const result = await this.elasticSearch.search({
+        index: MENU_ITEMS_ELASTICSEARCH_INDEX,
+        body: {
+          _source: ['mitems_id', 'mitems_name', "mitems_res_id", "mitems_price", "mitems_image", "mitems_note", "mitems_description"],
+          size: 1000,
+          query: {
+            bool: {
+              must: [
+                {
+                  match: {
+                    mitems_res_id: {
+                      query: mitems_res_id,
+                      operator: 'and'
+                    }
+                  }
+                },
+                {
+                  match: {
+                    isDeleted: {
+                      query: 0,
+                      operator: 'and'
+                    }
+                  }
+                },
+                //status
+                {
+                  match: {
+                    mitems_status: {
+                      query: 'enable',
+                      operator: 'and'
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      })
+
+      return result.hits?.hits.map((hit) => hit._source) || []
+    } catch (error) {
+      saveLogSystem({
+        action: 'getMenuItemsByRestaurantId',
+        class: 'MenuItemsQuery',
+        function: 'getMenuItemsByRestaurantId',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
 }

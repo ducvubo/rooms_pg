@@ -346,4 +346,21 @@ ${text}
     }
   }
 
+  async findAllMenuItemsByResId({ mitems_res_id }: { mitems_res_id: string }): Promise<MenuItemsEntity[]> {
+    try {
+      return this.menuItemsQuery.getMenuItemsByRestaurantId({ mitems_res_id })
+    } catch (error) {
+      saveLogSystem({
+        action: 'findAllMenuItemsByResId',
+        class: 'MenuItemsService',
+        function: 'findAllMenuItemsByResId',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
+
 }

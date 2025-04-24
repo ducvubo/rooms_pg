@@ -265,4 +265,38 @@ export class RoomsService {
       throw new ServerErrorDefault(error)
     }
   }
+
+  async getRoomsByRestaurantId({ room_res_id }: { room_res_id: string }): Promise<RoomsEntity[]> {
+    try {
+      return this.roomsQuery.getRoomByRestaurantId({ room_res_id })
+    } catch (error) {
+      saveLogSystem({
+        action: 'getRoomsByRestaurantId',
+        class: 'RoomsService',
+        function: 'getRoomsByRestaurantId',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
+
+  async getRoomById(room_id: string): Promise<RoomsEntity | null> {
+    try {
+      return this.roomsQuery.findOneInforById(room_id)
+    } catch (error) {
+      saveLogSystem({
+        action: 'getRoomById',
+        class: 'RoomsService',
+        function: 'getRoomById',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
 }

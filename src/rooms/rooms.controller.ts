@@ -15,7 +15,7 @@ export class RoomsController {
   constructor(private readonly roomsService: RoomsService) { }
 
   @Post()
-  @ResponseMessage('Thêm menu thành công')
+  @ResponseMessage('Thêm room thành công')
   @UseGuards(AccountAuthGuard)
   async createRooms(
     @Body() createRoomsDto: CreateRoomsDto,
@@ -25,7 +25,7 @@ export class RoomsController {
   }
 
   @Patch()
-  @ResponseMessage('Cập nhật menu thành công')
+  @ResponseMessage('Cập nhật room thành công')
   @UseGuards(AccountAuthGuard)
   async updateRooms(
     @Body() updateRoomsDto: UpdateRoomsDto,
@@ -35,7 +35,7 @@ export class RoomsController {
   }
 
   @Get()
-  @ResponseMessage('Lấy danh sách menu thành công')
+  @ResponseMessage('Lấy danh sách room thành công')
   @UseGuards(AccountAuthGuard)
   async findAll(
     @Query('current') pageIndex: string,
@@ -53,15 +53,31 @@ export class RoomsController {
     )
   }
 
-  @Get('menu-name')
-  @ResponseMessage('Lấy danh sách tên menu thành công')
+  @Get("/room-by-restaurant/:restaurant_id")
+  @ResponseMessage('Lấy danh sách room theo nhà hàng thành công')
+  async findAllByRestaurantId(
+    @Param('restaurant_id') restaurant_id: string
+  ): Promise<RoomsEntity[]> {
+    return await this.roomsService.getRoomsByRestaurantId({ room_res_id: restaurant_id })
+  }
+
+  @Get('infor-room/:room_id')
+  @ResponseMessage('Lấy thông tin room theo id thành công')
+  async findOneInforById(
+    @Param('room_id') room_id: string,
+  ): Promise<RoomsEntity> {
+    return await this.roomsService.getRoomById(room_id)
+  }
+
+  @Get('room-name')
+  @ResponseMessage('Lấy danh sách tên room thành công')
   @UseGuards(AccountAuthGuard)
   async findAllCatName(@Acccount() account: IAccount): Promise<RoomsEntity[]> {
     return await this.roomsService.findAllItemsName(account)
   }
 
   @Get('/recycle')
-  @ResponseMessage('Lấy danh sách menu đã xóa thành công')
+  @ResponseMessage('Lấy danh sách room đã xóa thành công')
   @UseGuards(AccountAuthGuard)
   async findAllRecycle(
     @Query('current') pageIndex: string,
@@ -80,7 +96,7 @@ export class RoomsController {
   }
 
   @Patch('update-status')
-  @ResponseMessage('Cập nhật trạng thái menu thành công')
+  @ResponseMessage('Cập nhật trạng thái room thành công')
   @UseGuards(AccountAuthGuard)
   async updateStatusRooms(
     @Body() updateStatusRoomsDto: UpdateStatusRoomsDto,
@@ -90,7 +106,7 @@ export class RoomsController {
   }
 
   @Patch('restore/:room_id')
-  @ResponseMessage('Khôi phục menu thành công')
+  @ResponseMessage('Khôi phục room thành công')
   @UseGuards(AccountAuthGuard)
   async restoreRooms(
     @Param('room_id') room_id: string,
@@ -100,7 +116,7 @@ export class RoomsController {
   }
 
   @Delete(':room_id')
-  @ResponseMessage('Xóa menu thành công')
+  @ResponseMessage('Xóa room thành công')
   @UseGuards(AccountAuthGuard)
   async deleteRooms(
     @Param('room_id') room_id: string,
@@ -111,7 +127,7 @@ export class RoomsController {
 
   @Get(':room_id')
   @UseGuards(AccountAuthGuard)
-  @ResponseMessage('Lấy thông tin menu thành công')
+  @ResponseMessage('Lấy thông tin room thành công')
   async findOneById(
     @Param('room_id') room_id: string,
     @Acccount() account: IAccount

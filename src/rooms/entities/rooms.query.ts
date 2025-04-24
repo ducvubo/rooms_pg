@@ -62,6 +62,64 @@ export class RoomsQuery {
     }
   }
 
+  async findOneInforById(room_id: string): Promise<RoomsEntity | null> {
+    try {
+      const indexExist = await indexElasticsearchExists(ROOMS_ELASTICSEARCH_INDEX)
+
+      if (!indexExist) {
+        return null
+      }
+      const result = await this.elasticSearch.search({
+        index: ROOMS_ELASTICSEARCH_INDEX,
+        body: {
+          query: {
+            bool: {
+              must: [
+                {
+                  match: {
+                    room_id: {
+                      query: room_id,
+                      operator: 'and'
+                    }
+                  }
+                },
+                {
+                  match: {
+                    isDeleted: {
+                      query: 0,
+                      operator: 'and'
+                    }
+                  }
+                },
+                {
+                  match: {
+                    room_status: {
+                      query: 'enable',
+                      operator: 'and'
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      })
+
+      return result.hits?.hits[0]?._source || null
+    } catch (error) {
+      saveLogSystem({
+        action: 'findOneById',
+        class: 'RoomsQuery',
+        function: 'findOneById',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
+
   async findAllPagination(
     {
       room_name,
@@ -217,6 +275,71 @@ export class RoomsQuery {
         action: 'findAllRoomName',
         class: 'RoomsQuery',
         function: 'findAllRoomName',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
+
+  async getRoomByRestaurantId({ room_res_id }: { room_res_id: string }): Promise<RoomsEntity[]> {
+    try {
+      const indexExist = await indexElasticsearchExists(ROOMS_ELASTICSEARCH_INDEX)
+
+      if (!indexExist) {
+        return []
+      }
+
+      //isDeleted = 0
+      //status = enable
+      const result = await this.elasticSearch.search({
+        index: ROOMS_ELASTICSEARCH_INDEX,
+        body: {
+          query: {
+            bool: {
+              must: [
+                {
+                  match: {
+                    room_res_id: {
+                      query: room_res_id,
+                      operator: 'and'
+                    }
+                  }
+                },
+                {
+                  match: {
+                    isDeleted: {
+                      query: 0,
+                      operator: 'and'
+                    }
+                  }
+                },
+                //status
+                {
+                  match: {
+                    room_status: {
+                      query: 'enable',
+                      operator: 'and'
+                    }
+                  }
+                }
+              ]
+            },
+          },
+          size: 1000,
+        }
+      })
+      if (result.hits?.total === 0) {
+        return []
+      }
+      return result.hits?.hits.map((hit) => hit._source) || []
+    } catch (error) {
+      saveLogSystem({
+        action: 'getRoomByRestaurantId',
+        class: 'RoomsQuery',
+        function: 'getRoomByRestaurantId',
         message: error.message,
         time: new Date(),
         error: error,

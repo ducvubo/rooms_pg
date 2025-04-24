@@ -18,6 +18,7 @@ import { RoomsModule } from './rooms/rooms.module';
 import { AmenitiesEntity, AmenitiesSubscriber } from './amenities/entities/amenities.entity'
 import { MenuItemsEntity, MenuItemsSubscriber } from './menu-items/entities/menu-items.entity'
 import { RoomsEntity, RoomsSubscriber } from './rooms/entities/rooms.entity'
+import { BookRoomModule } from './book-room/book-room.module';
 
 @Module({
   imports: [
@@ -81,7 +82,8 @@ uRh9HLbED2h+MekS2VLQ+qYA5Ocyd/yRXTON+YjT02yYIW/nKQ==
     TickGuestRestaurantReplicesModule,
     MenuItemsModule,
     AmenitiesModule,
-    RoomsModule
+    RoomsModule,
+    BookRoomModule
   ],
   controllers: [AppController],
   providers: [AppService]

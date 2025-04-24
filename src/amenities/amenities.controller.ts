@@ -59,6 +59,14 @@ export class AmenitiesController {
     return await this.amenitiesService.findAllAmenitiesName(account)
   }
 
+  @Get('/ame-by-restaurant/:restaurant_id')
+  @ResponseMessage('Lấy danh sách danh mục menu theo nhà hàng thành công')
+  async findAllByRestaurantId(
+    @Param('restaurant_id') restaurant_id: string
+  ): Promise<AmenitiesEntity[]> {
+    return await this.amenitiesService.findAllAmenitiesByResId({ ame_res_id: restaurant_id })
+  }
+
   @Get('/recycle')
   @ResponseMessage('Lấy danh sách danh mục menu đã xóa thành công')
   @UseGuards(AccountAuthGuard)

@@ -225,4 +225,65 @@ export class AmenitiesQuery {
       throw new ServerErrorDefault(error)
     }
   }
+
+  async getAmenitiesByRestaurantId({ ame_res_id }: { ame_res_id: string }): Promise<AmenitiesEntity[]> {
+    try {
+      const indexExist = await indexElasticsearchExists(AMENITIES_BOOK_ROOM_ELASTICSEARCH_INDEX)
+
+      if (!indexExist) {
+        return []
+      }
+
+      const result = await this.elasticSearch.search({
+        index: AMENITIES_BOOK_ROOM_ELASTICSEARCH_INDEX,
+        _source: ["ame_name", "ame_price", "ame_note", "ame_id", "ame_description", "ame_res_id"],
+        body: {
+          size: 1000,
+          query: {
+            bool: {
+              must: [
+                {
+                  match: {
+                    ame_res_id: {
+                      query: ame_res_id,
+                      operator: 'and'
+                    }
+                  }
+                },
+                {
+                  match: {
+                    isDeleted: {
+                      query: 0,
+                      operator: 'and'
+                    }
+                  }
+                },
+                {
+                  match: {
+                    ame_status: {
+                      query: 'enable',
+                      operator: 'and'
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      })
+
+      return result.hits?.hits.map((hit) => hit._source) || []
+    } catch (error) {
+      saveLogSystem({
+        action: 'getAmenitiesByRestaurantId',
+        class: 'AmenitiesQuery',
+        function: 'getAmenitiesByRestaurantId',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
 }

@@ -89,6 +89,14 @@ export class MenuItemsController {
     return await this.menuItemsService.findAllItemsName(account)
   }
 
+  @Get('menu-by-restaurant/:restaurant_id')
+  @ResponseMessage('Lấy danh sách menu theo nhà hàng thành công')
+  async findAllByRestaurantId(
+    @Param('restaurant_id') restaurant_id: string
+  ): Promise<MenuItemsEntity[]> {
+    return await this.menuItemsService.findAllMenuItemsByResId({ mitems_res_id: restaurant_id })
+  }
+
   @Get('/recycle')
   @ResponseMessage('Lấy danh sách menu đã xóa thành công')
   @UseGuards(AccountAuthGuard)
