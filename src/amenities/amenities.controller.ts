@@ -52,7 +52,7 @@ export class AmenitiesController {
     )
   }
 
-  @Get('cat-name')
+  @Get('ame-name')
   @ResponseMessage('Lấy danh sách tên danh mục menu thành công')
   @UseGuards(AccountAuthGuard)
   async findAllAmenitiesName(@Acccount() account: IAccount): Promise<AmenitiesEntity[]> {

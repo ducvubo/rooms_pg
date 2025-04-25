@@ -5,13 +5,6 @@ import { AppService } from './app.service'
 import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { UploadModule } from './upload/upload.module'
-import {
-  TicketGuestRestaurantEntity,
-  TicketGuestRestaurantSubscriber
-} from './ticket-guest-restaurant/entities/ticket-guest-restaurant.entity'
-import { TicketGuestRestaurantModule } from './ticket-guest-restaurant/ticket-guest-restaurant.module'
-import { TickGuestRestaurantReplicesModule } from './tick-guest-restaurant-replices/tick-guest-restaurant-replices.module'
-import { TicketGuestRestaurantReplicesEntity, TicketGuestRestaurantReplicesSubscriber } from './tick-guest-restaurant-replices/entities/tick-guest-restaurant-replices.entity'
 import { MenuItemsModule } from './menu-items/menu-items.module';
 import { AmenitiesModule } from './amenities/amenities.module';
 import { RoomsModule } from './rooms/rooms.module';
@@ -19,6 +12,9 @@ import { AmenitiesEntity, AmenitiesSubscriber } from './amenities/entities/ameni
 import { MenuItemsEntity, MenuItemsSubscriber } from './menu-items/entities/menu-items.entity'
 import { RoomsEntity, RoomsSubscriber } from './rooms/entities/rooms.entity'
 import { BookRoomModule } from './book-room/book-room.module';
+import { BookRoomEntity } from './book-room/entities/book-room.entity'
+import { AmenitiesSnapEntity } from './book-room/entities/amenities-snap.entity'
+import { MenuItemsSnapEntity } from './book-room/entities/menu-itmes-snap.entity'
 
 @Module({
   imports: [
@@ -33,15 +29,14 @@ import { BookRoomModule } from './book-room/book-room.module';
       password: 'AVNS_1OsX3Ol7nY47D5aQUuK',
       database: 'bookpg',
       entities: [
-        TicketGuestRestaurantEntity,
-        TicketGuestRestaurantReplicesEntity,
         AmenitiesEntity,
         MenuItemsEntity,
-        RoomsEntity
+        RoomsEntity,
+        BookRoomEntity,
+        AmenitiesSnapEntity,
+        MenuItemsSnapEntity
       ],
       subscribers: [
-        TicketGuestRestaurantSubscriber,
-        TicketGuestRestaurantReplicesSubscriber,
         AmenitiesSubscriber,
         MenuItemsSubscriber,
         RoomsSubscriber
@@ -78,8 +73,6 @@ uRh9HLbED2h+MekS2VLQ+qYA5Ocyd/yRXTON+YjT02yYIW/nKQ==
       }
     }),
     UploadModule,
-    TicketGuestRestaurantModule,
-    TickGuestRestaurantReplicesModule,
     MenuItemsModule,
     AmenitiesModule,
     RoomsModule,
