@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from 'typeorm';
 import { AmenitiesSnapEntity } from './entities/amenities-snap.entity';
@@ -12,7 +12,7 @@ import { MenuItemsSnapEntity } from './entities/menu-itmes-snap.entity';
 import { sendMessageToKafka } from 'src/utils/kafka';
 import { IAccount } from 'src/guard/interface/account.interface';
 import { ResultPagination } from 'src/interface/resultPagination.interface';
-
+import kafkaInstance from '../config/kafka.config'
 
 // export enum BookRoomStatus {
 //   NEW_CREATED = 'NEW_CREATED',
@@ -39,12 +39,68 @@ import { ResultPagination } from 'src/interface/resultPagination.interface';
 // }
 
 @Injectable()
-export class BookRoomService {
+export class BookRoomService implements OnModuleInit {
   constructor(
     private readonly dataSource: DataSource,
     @InjectRepository(BookRoomEntity)
     private readonly bookRoomRepo: Repository<BookRoomEntity>,
   ) { }
+
+  async onModuleInit() {
+    const consumer = await kafkaInstance.getConsumer('SYNC_CLIENT_ID_BOOK_ROOM')
+    await consumer.subscribe({ topic: 'SYNC_CLIENT_ID', fromBeginning: true })
+    await consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        const dataMessage = message.value.toString()
+        const data = JSON.parse(dataMessage)
+        const { clientIdOld, clientIdNew } = data
+        this.syncBookRoom({ clientIdOld, clientIdNew }).catch((error) => {
+          saveLogSystem({
+            action: 'onModuleInit',
+            error: error,
+            class: 'BookRoomService',
+            function: 'onModuleInit',
+            message: error.message,
+            time: new Date(),
+            type: 'error'
+          })
+        })
+      }
+    })
+  }
+
+
+  async syncBookRoom({ clientIdOld, clientIdNew }: { clientIdOld: string, clientIdNew: string }) {
+    try {
+      const bookRoom = await this.bookRoomRepo.find({
+        where: {
+          bkr_guest_id: clientIdOld
+        }
+      })
+
+      if (!bookRoom) {
+        throw new BadRequestError('Đơn đặt phòng không tồn tại hoặc đã bị xóa, vui lòng thử lại sau')
+      }
+
+      await Promise.all(
+        bookRoom.map(async (item) => {
+          item.bkr_guest_id = clientIdNew
+          await this.bookRoomRepo.save(item)
+        })
+      )
+    } catch (error) {
+      saveLogSystem({
+        action: 'syncBookRoom',
+        error: error,
+        class: 'BookRoomService',
+        function: 'syncBookRoom',
+        message: error.message,
+        time: new Date(),
+        type: 'error',
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
 
   async createBookRoom(createBookRoomDto: CreateBookRoomDto, bkr_guest_id: string): Promise<BookRoomEntity> {
     const queryRunner = this.dataSource.createQueryRunner()
