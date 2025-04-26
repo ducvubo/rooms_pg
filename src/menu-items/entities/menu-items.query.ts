@@ -176,7 +176,7 @@ export class MenuItemsQuery {
       const result = await this.elasticSearch.search({
         index: MENU_ITEMS_ELASTICSEARCH_INDEX,
         body: {
-          _source: ['mitems_id', 'mitems_name'],
+          _source: ['mitems_id', 'mitems_name', "mitems_res_id", "mitems_price", "mitems_image", "mitems_note", "mitems_description"],
           query: {
             bool: {
               must: [

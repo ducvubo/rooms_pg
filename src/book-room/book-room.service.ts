@@ -916,7 +916,6 @@ export class BookRoomService {
     menu_id: string,
     bkr_menu_quantity: number
   }[], account: IAccount): Promise<BookRoomEntity> {
-    //chỉ được thêm khi in_use, sử dụng transaction
     const queryRunner = this.dataSource.createQueryRunner()
     try {
       await queryRunner.connect()

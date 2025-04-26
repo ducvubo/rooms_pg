@@ -176,7 +176,7 @@ export class AmenitiesQuery {
       const result = await this.elasticSearch.search({
         index: AMENITIES_BOOK_ROOM_ELASTICSEARCH_INDEX,
         body: {
-          _source: ['ame_id', 'ame_name'],
+          _source: ["ame_name", "ame_price", "ame_note", "ame_id", "ame_description", "ame_res_id"],
           query: {
             bool: {
               must: [
