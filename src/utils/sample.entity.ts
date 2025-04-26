@@ -1,16 +1,16 @@
 import { Column, CreateDateColumn, DeleteDateColumn, UpdateDateColumn } from 'typeorm'
 
 export class SampleEntity {
-  @CreateDateColumn({ type: 'date' })
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt?: Date
 
-  @UpdateDateColumn({ type: 'date' })
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt?: Date
 
-  @DeleteDateColumn({ type: 'date' })
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedAt?: Date
 
-  @Column({ type: 'int', default: 0 }) // 0: chưa xóa, 1: đã xóa
+  @Column({ type: 'int', default: 0 })
   isDeleted?: 0 | 1
 
   @Column('varchar', { length: 36, nullable: true })

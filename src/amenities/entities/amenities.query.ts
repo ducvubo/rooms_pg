@@ -129,7 +129,7 @@ export class AmenitiesQuery {
           query,
           from,
           size: pageSize,
-          sort: [{ updatedAt: { order: 'desc' } }]
+          sort: [{ updatedAt: { order: 'asc' } }]
         }
       })
       const hits = result.hits?.hits || []
