@@ -10,6 +10,7 @@ import { CreateRoomsDto } from './dto/create-rooms.dto'
 import { RoomsEntity } from './entities/rooms.entity'
 import { UpdateRoomsDto } from './dto/update-rooms.dto'
 import { UpdateStatusRoomsDto } from './dto/update-status-rooms.dto'
+import { sendMessageToKafka } from 'src/utils/kafka'
 
 @Injectable()
 export class RoomsService {
@@ -23,7 +24,7 @@ export class RoomsService {
     account: IAccount
   ): Promise<RoomsEntity> {
     try {
-      return await this.roomsRepo.createRooms({
+      const room = await this.roomsRepo.createRooms({
         room_name: createRoomsDto.room_name,
         room_fix_ame: createRoomsDto.room_fix_ame,
         room_area: createRoomsDto.room_area,
@@ -36,6 +37,21 @@ export class RoomsService {
         room_deposit: createRoomsDto.room_deposit,
         createdBy: account.account_employee_id ? account.account_employee_id : account.account_restaurant_id
       })
+
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Phòng ${createRoomsDto.room_name} vừa được thêm mới`,
+          noti_title: `Phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+
+      return room
+
     } catch (error) {
       saveLogSystem({
         action: 'createRooms',
@@ -73,7 +89,7 @@ export class RoomsService {
       if (!roomsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      return this.roomsRepo.updateRooms({
+      const update = await this.roomsRepo.updateRooms({
         room_name: updateRoomsDto.room_name,
         room_fix_ame: updateRoomsDto.room_fix_ame,
         room_max_guest: updateRoomsDto.room_max_guest,
@@ -86,6 +102,20 @@ export class RoomsService {
         room_res_id: account.account_restaurant_id,
         room_id: updateRoomsDto.room_id
       })
+
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Phòng ${updateRoomsDto.room_name} vừa được cập nhật`,
+          noti_title: `Phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+
+      return update
     } catch (error) {
       saveLogSystem({
         action: 'updateRooms',
@@ -106,7 +136,21 @@ export class RoomsService {
       if (!roomsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      return this.roomsRepo.deleteRooms(room_id, account)
+      const deleted = await this.roomsRepo.deleteRooms(room_id, account)
+
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Phòng ${roomsExist.room_name} vừa được xóa`,
+          noti_title: `Phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+
+      return deleted
     } catch (error) {
       saveLogSystem({
         action: 'deleteRooms',
@@ -127,7 +171,21 @@ export class RoomsService {
       if (!roomsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      return this.roomsRepo.restoreRooms(room_id, account)
+      const restore = await this.roomsRepo.restoreRooms(room_id, account)
+
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Phòng ${roomsExist.room_name} vừa được khôi phục`,
+          noti_title: `Phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+
+      return restore
     } catch (error) {
       saveLogSystem({
         action: 'restoreRooms',
@@ -154,7 +212,19 @@ export class RoomsService {
       if (!roomsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      return this.roomsRepo.updateStatusRooms(updateStatusRoomsDto, account)
+      const update = await this.roomsRepo.updateStatusRooms(updateStatusRoomsDto, account)
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Phòng ${roomsExist.room_name} vừa được cập nhật trạng thái`,
+          noti_title: `Phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+      return update
     } catch (error) {
       saveLogSystem({
         action: 'updateStatusRooms',

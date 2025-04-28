@@ -10,6 +10,7 @@ import { CreateAmenitiesDto } from './dto/create-amenities.dto'
 import { AmenitiesEntity } from './entities/amenities.entity'
 import { UpdateAmenitiesDto } from './dto/update-amenities.dto'
 import { UpdateStatusAmenitiesDto } from './dto/update-status-amenities.dto'
+import { sendMessageToKafka } from 'src/utils/kafka'
 
 
 @Injectable()
@@ -24,7 +25,7 @@ export class AmenitiesService {
     account: IAccount
   ): Promise<AmenitiesEntity> {
     try {
-      return this.amenitiesRepo.createAmenities({
+      const ame = await this.amenitiesRepo.createAmenities({
         ame_name: createAmenitiesDto.ame_name,
         ame_price: createAmenitiesDto.ame_price,
         ame_note: createAmenitiesDto.ame_note,
@@ -32,6 +33,19 @@ export class AmenitiesService {
         ame_res_id: account.account_restaurant_id,
         createdBy: account.account_employee_id ? account.account_employee_id : account.account_restaurant_id
       })
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Tiện ích phòng ${createAmenitiesDto.ame_name} vừa được tạo mới`,
+          noti_title: `Tiện ích phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+
+      return ame
     } catch (error) {
       saveLogSystem({
         action: 'createAmenities',
@@ -69,7 +83,7 @@ export class AmenitiesService {
       if (!amenitiesExist) {
         throw new BadRequestError('Danh mục menu không tồn tại')
       }
-      return this.amenitiesRepo.updateAmenities({
+      const update = await this.amenitiesRepo.updateAmenities({
         ame_name: updateAmenitiesDto.ame_name,
         ame_price: updateAmenitiesDto.ame_price,
         ame_note: updateAmenitiesDto.ame_note,
@@ -78,6 +92,21 @@ export class AmenitiesService {
         ame_res_id: account.account_restaurant_id,
         ame_id: updateAmenitiesDto.ame_id
       })
+
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Tiện ích phòng ${updateAmenitiesDto.ame_name} vừa được cập nhật`,
+          noti_title: `Tiện ích phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+
+      return update
+
     } catch (error) {
       saveLogSystem({
         action: 'updateAmenities',
@@ -98,7 +127,19 @@ export class AmenitiesService {
       if (!amenitiesExist) {
         throw new BadRequestError('Danh mục menu không tồn tại')
       }
-      return this.amenitiesRepo.deleteAmenities(ame_id, account)
+      const deleted = await this.amenitiesRepo.deleteAmenities(ame_id, account)
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Tiện ích phòng ${amenitiesExist.ame_name} vừa được xóa`,
+          noti_title: `Tiện ích phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+      return deleted
     } catch (error) {
       saveLogSystem({
         action: 'deleteAmenities',
@@ -119,7 +160,19 @@ export class AmenitiesService {
       if (!amenitiesExist) {
         throw new BadRequestError('Danh mục menu không tồn tại')
       }
-      return this.amenitiesRepo.restoreAmenities(ame_id, account)
+      const restore = await this.amenitiesRepo.restoreAmenities(ame_id, account)
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Tiện ích phòng ${amenitiesExist.ame_name} vừa được khôi phục`,
+          noti_title: `Tiện ích phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+      return restore
     } catch (error) {
       saveLogSystem({
         action: 'restoreAmenities',
@@ -146,7 +199,19 @@ export class AmenitiesService {
       if (!amenitiesExist) {
         throw new BadRequestError('Danh mục menu không tồn tại')
       }
-      return this.amenitiesRepo.updateStatusAmenities(updateStatusAmenitiesDto, account)
+      const update = await this.amenitiesRepo.updateStatusAmenities(updateStatusAmenitiesDto, account)
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Tiện ích phòng ${amenitiesExist.ame_name} vừa được cập nhật trạng thái`,
+          noti_title: `Tiện ích phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+      return update
     } catch (error) {
       saveLogSystem({
         action: 'updateStatusAmenities',

@@ -1,40 +1,23 @@
-import { Injectable, OnModuleInit } from '@nestjs/common'
-import { Client, ClientGrpc, Transport } from '@nestjs/microservices'
-import AppInterface from './app.interface'
-import { join } from 'path'
-import { ConfigService } from '@nestjs/config'
-import { firstValueFrom, Observable } from 'rxjs'
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { callGeminiAPI } from './utils/gemini.api';
 
 @Injectable()
-export class AppService implements OnModuleInit {
-  constructor(private readonly configService: ConfigService) {}
+export class AppService {
+  constructor(private readonly configService: ConfigService) { }
 
-  @Client({
-    transport: Transport.GRPC,
-    options: {
-      package: 'HelloWorld',
-      protoPath: join(__dirname, 'grpc/proto/helloWorld.proto'),
-      url: '127.0.0.1:8000'
-    }
-  })
-  client: ClientGrpc
-  private grpcService: AppInterface
+  async generateContent(title: string): Promise<string> {
+    const prompt = `
+  Viết một bài blog chi tiết (500-600 từ) xoay quanh chủ đề: "${title}".
 
-  // constructor(@Inject('APP_SERVICE') private readonly grpcClient: ClientGrpc) {}
+  - Không viết phần giới thiệu như "Dưới đây là..."
+  - Bắt đầu thẳng vào nội dung chính.
+  - Giọng văn gần gũi, truyền cảm hứng.
+  - Kể chuyện, tạo cảm giác hấp dẫn.
+  `;
 
-  onModuleInit() {
-    this.grpcService = this.client.getService<AppInterface>('HelloWorldService')
+    const result = await callGeminiAPI(prompt);
+    return result;
   }
 
-  async getHelloGRPC(): Promise<any> {
-    try {
-      const response: Observable<any> = await this.grpcService.GetHelloWorld({ name: 'ChatGPT' })
-      const result = await firstValueFrom(response)
-      console.log('Response:', result)
-      return response
-    } catch (error) {
-      console.error('gRPC call error:', error)
-      throw error
-    }
-  }
 }

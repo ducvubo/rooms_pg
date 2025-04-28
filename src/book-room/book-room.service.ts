@@ -225,6 +225,18 @@ export class BookRoomService implements OnModuleInit {
 
       await this.bookRoomRepo.save(bookRoomExist)
 
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: bookRoomExist.bkr_res_id,
+          noti_content: `Nhà hàng vừa có đơn hàng đặt phòng mới từ ${bookRoomExist.bkr_ame}`,
+          noti_title: `Đặt phòng`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+
       return bookRoomExist
     } catch (error) {
       saveLogSystem({

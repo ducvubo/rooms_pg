@@ -12,6 +12,7 @@ import { UpdateStatusMenuItemsDto } from './dto/update-status-menu-items.dto'
 import { UpdateMenuItemsDto } from './dto/update-menu-items.dto'
 import { callGeminiAPI } from 'src/utils/gemini.api'
 import { createWorker } from 'tesseract.js'
+import { sendMessageToKafka } from 'src/utils/kafka'
 
 @Injectable()
 export class MenuItemsService {
@@ -25,7 +26,7 @@ export class MenuItemsService {
     account: IAccount
   ): Promise<MenuItemsEntity> {
     try {
-      return await this.menuItemsRepo.createMenuItems({
+      const menu = await this.menuItemsRepo.createMenuItems({
         mitems_name: createMenuItemsDto.mitems_name,
         mitems_price: createMenuItemsDto.mitems_price,
         mitems_image: createMenuItemsDto.mitems_image,
@@ -34,6 +35,18 @@ export class MenuItemsService {
         mitems_res_id: account.account_restaurant_id,
         createdBy: account.account_employee_id ? account.account_employee_id : account.account_restaurant_id
       })
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Món ăn ${createMenuItemsDto.mitems_name} vừa được thêm mới`,
+          noti_title: `Món ăn`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+      return menu
     } catch (error) {
       saveLogSystem({
         action: 'createMenuItems',
@@ -71,7 +84,7 @@ export class MenuItemsService {
       if (!menuItemsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      return this.menuItemsRepo.updateMenuItems({
+      const update = await this.menuItemsRepo.updateMenuItems({
         mitems_name: updateMenuItemsDto.mitems_name,
         mitems_price: updateMenuItemsDto.mitems_price,
         mitems_image: updateMenuItemsDto.mitems_image,
@@ -81,6 +94,20 @@ export class MenuItemsService {
         mitems_res_id: account.account_restaurant_id,
         mitems_id: updateMenuItemsDto.mitems_id
       })
+
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Món ăn ${updateMenuItemsDto.mitems_name} vừa được cập nhật`,
+          noti_title: `Món ăn`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+
+      return update
     } catch (error) {
       saveLogSystem({
         action: 'updateMenuItems',
@@ -101,7 +128,19 @@ export class MenuItemsService {
       if (!menuItemsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      return this.menuItemsRepo.deleteMenuItems(mitems_id, account)
+      const deleted = await this.menuItemsRepo.deleteMenuItems(mitems_id, account)
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Món ăn ${menuItemsExist.mitems_name} vừa được xóa`,
+          noti_title: `Món ăn`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+      return deleted
     } catch (error) {
       saveLogSystem({
         action: 'deleteMenuItems',
@@ -122,7 +161,19 @@ export class MenuItemsService {
       if (!menuItemsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      return this.menuItemsRepo.restoreMenuItems(mitems_id, account)
+      const restore = await this.menuItemsRepo.restoreMenuItems(mitems_id, account)
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Món ăn ${menuItemsExist.mitems_name} vừa được khôi phục`,
+          noti_title: `Món ăn`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+      return restore
     } catch (error) {
       saveLogSystem({
         action: 'restoreMenuItems',
@@ -149,7 +200,19 @@ export class MenuItemsService {
       if (!menuItemsExist) {
         throw new BadRequestError('Menu không tồn tại')
       }
-      return this.menuItemsRepo.updateStatusMenuItems(updateStatusMenuItemsDto, account)
+      const update = await this.menuItemsRepo.updateStatusMenuItems(updateStatusMenuItemsDto, account)
+      sendMessageToKafka({
+        topic: 'NOTIFICATION_ACCOUNT_CREATE',
+        message: JSON.stringify({
+          restaurantId: account.account_restaurant_id,
+          noti_content: `Món ăn ${menuItemsExist.mitems_name} vừa được cập nhật trạng thái`,
+          noti_title: `Món ăn`,
+          noti_type: 'table',
+          noti_metadata: JSON.stringify({ text: 'test' }),
+          sendObject: 'all_account'
+        })
+      })
+      return update
     } catch (error) {
       saveLogSystem({
         action: 'updateStatusMenuItems',
