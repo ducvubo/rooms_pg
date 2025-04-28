@@ -369,4 +369,47 @@ export class RoomsService {
       throw new ServerErrorDefault(error)
     }
   }
+
+
+  async findAllPaginationListRoom({ pageSize, pageIndex }): Promise<{
+    meta: {
+      pageIndex: number
+      pageSize: number
+      totalPage: number
+      totalItem: number
+    }
+    result: RoomsEntity[]
+  }> {
+    try {
+      pageIndex = isNaN(pageIndex) ? 0 : pageIndex
+      pageSize = isNaN(pageSize) ? 10 : pageSize
+
+      const dataFood = await this.roomsQuery.findAllPaginationListRoom({ pageSize, pageIndex })
+
+      if (!dataFood?.result.length) {
+        return {
+          meta: {
+            pageIndex,
+            pageSize,
+            totalPage: 0,
+            totalItem: 0
+          },
+          result: []
+        }
+      }
+
+      return dataFood
+    } catch (error) {
+      saveLogSystem({
+        action: 'findAllPaginationListRoom',
+        class: 'RoomsService',
+        function: 'findAllPaginationListRoom',
+        message: error.message,
+        time: new Date(),
+        error: error,
+        type: 'error'
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
 }

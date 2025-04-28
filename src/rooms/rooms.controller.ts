@@ -9,6 +9,7 @@ import { CreateRoomsDto } from './dto/create-rooms.dto'
 import { RoomsEntity } from './entities/rooms.entity'
 import { UpdateRoomsDto } from './dto/update-rooms.dto'
 import { UpdateStatusRoomsDto } from './dto/update-status-rooms.dto'
+import { ApiOkResponse, ApiQuery } from '@nestjs/swagger'
 
 @Controller('rooms')
 export class RoomsController {
@@ -51,6 +52,28 @@ export class RoomsController {
       },
       account
     )
+  }
+
+  @Get('list-room-by-all')
+  @ResponseMessage('Lấy danh sách combo món ăn thành công')
+  @ApiQuery({ name: 'pageIndex', required: true, type: Number, description: 'Trang hiện tại' })
+  @ApiQuery({ name: 'pageSize', required: true, type: Number, description: 'Số lượng phần tử mỗi trang' })
+  @ApiOkResponse({
+    description: 'Danh sách món ăn phân trang'
+  })
+  async findAllPaginationListFood(
+    @Query('pageIndex') pageIndex: string,
+    @Query('pageSize') pageSize: string
+  ): Promise<{
+    meta: {
+      pageIndex: number
+      pageSize: number
+      totalPage: number
+      totalItem: number
+    }
+    result: RoomsEntity[]
+  }> {
+    return await this.roomsService.findAllPaginationListRoom({ pageSize: +pageSize, pageIndex: +pageIndex })
   }
 
   @Get("/room-by-restaurant/:restaurant_id")
