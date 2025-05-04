@@ -1143,8 +1143,9 @@ export class BookRoomService implements OnModuleInit {
       if (keyword) {
         const likeKeyword = Like(`%${keyword}%`)
         where = [
-          { ...commonConditions, bkr_code: likeKeyword },
-          { ...commonConditions, bkr_name: likeKeyword }
+          { ...commonConditions, bkr_email: likeKeyword },
+          { ...commonConditions, bkr_phone: likeKeyword },
+          { ...commonConditions, bkr_ame: likeKeyword }
         ]
       } else {
         where = commonConditions
@@ -1226,8 +1227,9 @@ export class BookRoomService implements OnModuleInit {
       if (keyword) {
         const likeKeyword = Like(`%${keyword}%`)
         where = [
-          { ...commonConditions, bkr_code: likeKeyword },
-          { ...commonConditions, bkr_name: likeKeyword }
+          { ...commonConditions, bkr_email: likeKeyword },
+          { ...commonConditions, bkr_phone: likeKeyword },
+          { ...commonConditions, bkr_ame: likeKeyword }
         ]
       } else {
         where = commonConditions
