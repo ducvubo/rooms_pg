@@ -1115,12 +1115,12 @@ export class BookRoomService implements OnModuleInit {
     fromDate: string
   }, account: IAccount): Promise<ResultPagination<BookRoomEntity>> {
     try {
-      const whereConditions: any = {
+      const commonConditions: any = {
         bkr_res_id: account.account_restaurant_id
       }
 
       if (bkr_status !== 'all') {
-        whereConditions.bkr_status = bkr_status
+        commonConditions.bkr_status = bkr_status
       }
 
       if (fromDate || toDate) {
@@ -1130,21 +1130,28 @@ export class BookRoomService implements OnModuleInit {
         if (from && to && !isNaN(from.getTime()) && !isNaN(to.getTime())) {
           const start = from < to ? from : to
           const end = from < to ? to : from
-          whereConditions.bkr_created_at = Between(start, end)
+          commonConditions.bkr_created_at = Between(start, end)
         } else if (from && !isNaN(from.getTime())) {
-          whereConditions.bkr_created_at = MoreThanOrEqual(from)
+          commonConditions.bkr_created_at = MoreThanOrEqual(from)
         } else if (to && !isNaN(to.getTime())) {
-          whereConditions.bkr_created_at = LessThanOrEqual(to)
+          commonConditions.bkr_created_at = LessThanOrEqual(to)
         }
       }
 
+      let where: any
+
       if (keyword) {
-        whereConditions.bkr_code = Like(`%${keyword}%`)
-        whereConditions.bkr_name = Like(`%${keyword}%`)
+        const likeKeyword = Like(`%${keyword}%`)
+        where = [
+          { ...commonConditions, bkr_code: likeKeyword },
+          { ...commonConditions, bkr_name: likeKeyword }
+        ]
+      } else {
+        where = commonConditions
       }
 
-      const bookRooms = await this.bookRoomRepo.find({
-        where: whereConditions,
+      const [bookRooms, total] = await this.bookRoomRepo.findAndCount({
+        where,
         order: {
           bkr_created_at: 'DESC'
         },
@@ -1153,9 +1160,6 @@ export class BookRoomService implements OnModuleInit {
         relations: ['menuItems', 'amenities']
       })
 
-      const total = await this.bookRoomRepo.count({
-        where: whereConditions
-      })
 
       const totalPage = Math.ceil(total / pageSize)
       const result: ResultPagination<BookRoomEntity> = {
@@ -1194,12 +1198,12 @@ export class BookRoomService implements OnModuleInit {
     fromDate: string
   }, bkr_guest_id: string): Promise<ResultPagination<BookRoomEntity>> {
     try {
-      const whereConditions: any = {
+      const commonConditions: any = {
         bkr_guest_id: bkr_guest_id
       }
 
       if (bkr_status !== 'all') {
-        whereConditions.bkr_status = bkr_status
+        commonConditions.bkr_status = bkr_status
       }
 
       if (fromDate || toDate) {
@@ -1209,31 +1213,34 @@ export class BookRoomService implements OnModuleInit {
         if (from && to && !isNaN(from.getTime()) && !isNaN(to.getTime())) {
           const start = from < to ? from : to
           const end = from < to ? to : from
-          whereConditions.bkr_created_at = Between(start, end)
+          commonConditions.bkr_created_at = Between(start, end)
         } else if (from && !isNaN(from.getTime())) {
-          whereConditions.bkr_created_at = MoreThanOrEqual(from)
+          commonConditions.bkr_created_at = MoreThanOrEqual(from)
         } else if (to && !isNaN(to.getTime())) {
-          whereConditions.bkr_created_at = LessThanOrEqual(to)
+          commonConditions.bkr_created_at = LessThanOrEqual(to)
         }
       }
 
+      let where: any
+
       if (keyword) {
-        whereConditions.bkr_code = Like(`%${keyword}%`)
-        whereConditions.bkr_name = Like(`%${keyword}%`)
+        const likeKeyword = Like(`%${keyword}%`)
+        where = [
+          { ...commonConditions, bkr_code: likeKeyword },
+          { ...commonConditions, bkr_name: likeKeyword }
+        ]
+      } else {
+        where = commonConditions
       }
 
-      const bookRooms = await this.bookRoomRepo.find({
-        where: whereConditions,
+      const [bookRooms, total] = await this.bookRoomRepo.findAndCount({
+        where,
         order: {
           bkr_created_at: 'DESC'
         },
         skip: (pageIndex - 1) * pageSize,
         take: pageSize,
         relations: ['menuItems', 'amenities']
-      })
-
-      const total = await this.bookRoomRepo.count({
-        where: whereConditions
       })
 
       const totalPage = Math.ceil(total / pageSize)
