@@ -60,16 +60,16 @@ class LoggerService {
       ]
     }
 
-    this.sendToMessage(formattedMessage)
+    // this.sendToMessage(formattedMessage)
   }
 
   private sendToMessage(message: any) {
-    const channel = this.client.channels.cache.get(this.channelId!) as TextChannel
-    if (!channel) {
-      console.error(`Couldn't find the channel...`, this.channelId)
-      return
-    }
-    channel.send(message).catch((e) => console.error(e))
+    // const channel = this.client.channels.cache.get(this.channelId!) as TextChannel
+    // if (!channel) {
+    // console.error(`Couldn't find the channel...`, this.channelId)
+    // return
+    // }
+    // channel.send(message).catch((e) => console.error(e))
   }
 }
 
