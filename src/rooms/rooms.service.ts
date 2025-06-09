@@ -11,6 +11,8 @@ import { RoomsEntity } from './entities/rooms.entity'
 import { UpdateRoomsDto } from './dto/update-rooms.dto'
 import { UpdateStatusRoomsDto } from './dto/update-status-rooms.dto'
 import { sendMessageToKafka } from 'src/utils/kafka'
+import { KEY_HOME_PAGE_LIST_ROOM } from 'src/constants/key.redis'
+import { deleteCacheIO, getCacheIO, setCacheIO } from 'src/utils/cache'
 
 @Injectable()
 export class RoomsService {
@@ -49,7 +51,8 @@ export class RoomsService {
           sendObject: 'all_account'
         })
       })
-
+      //xóa cache
+      await deleteCacheIO(`${KEY_HOME_PAGE_LIST_ROOM}_${account.account_restaurant_id}`)
       return room
 
     } catch (error) {
@@ -115,6 +118,8 @@ export class RoomsService {
         })
       })
 
+      await deleteCacheIO(`${KEY_HOME_PAGE_LIST_ROOM}_${account.account_restaurant_id}`)
+
       return update
     } catch (error) {
       saveLogSystem({
@@ -149,6 +154,8 @@ export class RoomsService {
           sendObject: 'all_account'
         })
       })
+
+      await deleteCacheIO(`${KEY_HOME_PAGE_LIST_ROOM}_${account.account_restaurant_id}`)
 
       return deleted
     } catch (error) {
@@ -185,7 +192,9 @@ export class RoomsService {
         })
       })
 
-      return restore
+      await deleteCacheIO(`${KEY_HOME_PAGE_LIST_ROOM}_${account.account_restaurant_id}`)
+
+        return restore
     } catch (error) {
       saveLogSystem({
         action: 'restoreRooms',
@@ -224,6 +233,8 @@ export class RoomsService {
           sendObject: 'all_account'
         })
       })
+      await deleteCacheIO(`${KEY_HOME_PAGE_LIST_ROOM}_${account.account_restaurant_id}`)
+
       return update
     } catch (error) {
       saveLogSystem({
@@ -338,7 +349,15 @@ export class RoomsService {
 
   async getRoomsByRestaurantId({ room_res_id }: { room_res_id: string }): Promise<RoomsEntity[]> {
     try {
-      return this.roomsQuery.getRoomByRestaurantId({ room_res_id })
+      const listRoom = await getCacheIO(`${KEY_HOME_PAGE_LIST_ROOM}_${room_res_id}`)
+      if (listRoom) {
+        console.log('Data from cache');
+        return listRoom
+      }
+      const data = await this.roomsQuery.getRoomByRestaurantId({ room_res_id })
+      await setCacheIO(`${KEY_HOME_PAGE_LIST_ROOM}_${room_res_id}`, data)
+      console.log('Data from database');
+      return data
     } catch (error) {
       saveLogSystem({
         action: 'getRoomsByRestaurantId',

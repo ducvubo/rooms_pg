@@ -8,3 +8,6 @@ export const KEY_LOGOUT_TABLE_RESTAURANT = 'logout_table_restaurant'
 export const KEY_ACCESS_TOKEN_GUEST_RESTAURANT = 'access_token_guest_restaurant'
 
 export const SIGN_TOKEN = 'sign_token'
+
+
+export const KEY_HOME_PAGE_LIST_ROOM = 'home_page_list_room'

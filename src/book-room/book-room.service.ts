@@ -1270,4 +1270,101 @@ export class BookRoomService implements OnModuleInit {
       throw new ServerErrorDefault(error)
     }
   }
+
+  async updateFeedViewBookRoom(bkr_id: string, bkr_feed_view: 'active' | 'disable'): Promise<BookRoomEntity> {
+    try {
+      const bookRoomExist = await this.bookRoomRepo.findOneBy({ bkr_id })
+      if (!bookRoomExist) {
+        throw new BadRequestError('Đặt phòng không tồn tại hoặc đã bị xóa')
+      }
+
+      bookRoomExist.bkr_feed_view = bkr_feed_view
+      await this.bookRoomRepo.save(bookRoomExist)
+      return bookRoomExist
+    } catch (error) {
+      saveLogSystem({
+        action: 'updateFeedViewBookRoom',
+        error: error,
+        class: 'BookRoomService',
+        function: 'updateFeedViewBookRoom',
+        message: error.message,
+        time: new Date(),
+        type: 'error',
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
+
+  async getListFeedbackBookRoomRestaurantPagination({
+    pageIndex,
+    pageSize,
+    star,
+    restaurant_id
+  }: {
+    pageIndex: number
+    pageSize: number
+    star: string
+    restaurant_id: string
+  }): Promise<{
+    meta: {
+      pageIndex: number
+      pageSize: number
+      totalPage: number
+      totalItem: number
+    }
+    result: BookRoomEntity[]
+  }> {
+    try {
+      const query: any = {
+        bkr_res_id: restaurant_id,
+        bkr_feed_view: 'active',
+      }
+
+      if (star && star !== '0') {
+        query.bkr_star = Number(star)
+      }
+
+      const [bookRooms, total] = await this.bookRoomRepo.findAndCount({
+        where: query,
+        order: {
+          bkr_created_at: 'DESC'
+        },
+        skip: (pageIndex - 1) * pageSize,
+        take: pageSize,
+        select: ['bkr_feedback', 'bkr_reply', 'bkr_star']
+      })
+
+      const totalPage = Math.ceil(total / pageSize)
+      const result: {
+        meta: {
+          pageIndex: number
+          pageSize: number
+          totalItem: number
+          totalPage: number
+        }
+        result: BookRoomEntity[]
+      } = {
+        meta: {
+          pageIndex: pageIndex,
+          pageSize,
+          totalItem: total,
+          totalPage
+        },
+        result: bookRooms
+      }
+
+      return result
+    } catch (error) {
+      saveLogSystem({
+        action: 'getListFeedbackBookRoomRestaurantPagination',
+        error: error,
+        class: 'BookRoomService',
+        function: 'getListFeedbackBookRoomRestaurantPagination',
+        message: error.message,
+        time: new Date(),
+        type: 'error',
+      })
+      throw new ServerErrorDefault(error)
+    }
+  }
 }

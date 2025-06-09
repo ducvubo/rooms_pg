@@ -83,6 +83,9 @@ export class BookRoomEntity extends SampleEntity {
   @Column('int', { nullable: true })
   bkr_star?: 1 | 2 | 3 | 4 | 5
 
+  @Column('varchar', { length: 255, default: 'disable' })
+  bkr_feed_view?: 'active' | 'disable'
+
   @Column('varchar', { length: 255, nullable: true })
   bkr_reason_cancel?: string
 

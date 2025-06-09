@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Query, Request, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Request, Res, UseGuards } from '@nestjs/common';
 import { Request as RequestExpress } from 'express';
 import { BookRoomService } from './book-room.service';
 import { Acccount, ResponseMessage } from 'src/decorator/customize';
@@ -233,6 +233,33 @@ export class BookRoomController {
     return await this.bookRoomService.getListBookRoomGuestPagination(
       { pageIndex, pageSize, keyword, bkr_status, fromDate, toDate },
       req.headers['x-cl-id'] as string,
+    );
+  }
+
+  @Patch('/update-feed-view')
+  @ResponseMessage('Cập nhật trạng thái xem phản hồi thành công')
+  async updateFeedViewBookRoom(@Body('bkr_id') bkr_id: string, @Body('bkr_feed_view') bkr_feed_view: 'active' | 'disable'): Promise<BookRoomEntity> {
+    return await this.bookRoomService.updateFeedViewBookRoom(bkr_id, bkr_feed_view);
+  }
+
+  @Get('/restaurant-feedback-list/:restaurant_id')
+  @ResponseMessage('Lấy danh sách phản hồi của nhà hàng thành công')
+  async getListFeedbackBookRoomRestaurantPagination(
+    @Query('pageIndex') pageIndex: number,
+    @Query('pageSize') pageSize: number,
+    @Query('star') star: string,
+    @Param('restaurant_id') restaurant_id: string,
+  ): Promise<{
+    meta: {
+      pageIndex: number
+      pageSize: number
+      totalPage: number
+      totalItem: number
+    }
+    result: BookRoomEntity[]
+  }> {
+    return await this.bookRoomService.getListFeedbackBookRoomRestaurantPagination(
+      { pageIndex, pageSize, star, restaurant_id },
     );
   }
 }
