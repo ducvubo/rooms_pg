@@ -6,9 +6,9 @@ import { v4 as uuidv4 } from 'uuid'
 
 const elasticSearch = getElasticsearch().instanceConnect
 
-const INDEX_SYSTEM_LOG = 'system-log-inventory-pg'
-const INDEX_LOG_API_SUCCESS = 'log-api-success-inventory-pg'
-const INDEX_LOG_API_ERROR = 'log-api-error-inventory-pg'
+const INDEX_SYSTEM_LOG = 'system-log-rooms-pg'
+const INDEX_LOG_API_SUCCESS = 'log-api-success-rooms-pg'
+const INDEX_LOG_API_ERROR = 'log-api-error-rooms-pg'
 
 export const saveLogSystem = (data: ILogSystem) => {
   try {
