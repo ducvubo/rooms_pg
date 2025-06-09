@@ -31,7 +31,7 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new TransformIntercaptor(reflector))
   app.useGlobalInterceptors(new IdUserGuestInterceptor(reflector))
-  app.useGlobalInterceptors(new CacheInterceptor())
+  // app.useGlobalInterceptors(new CacheInterceptor())
 
   app.useStaticAssets(join(__dirname, '..', 'public'))
   app.setBaseViewsDir(join(__dirname, '..', 'views'))
