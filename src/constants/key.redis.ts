@@ -11,3 +11,8 @@ export const SIGN_TOKEN = 'sign_token'
 
 
 export const KEY_HOME_PAGE_LIST_ROOM = 'home_page_list_room'
+
+export const KEY_LIST_MENU_ITEM_RESTAURANT = 'list_menu_item_restaurant'
+export const KEY_LIST_AMENITIES_RESTAURANT = 'list_amenities_restaurant'
+
+export const KEY_ROOM_RESTAURANT_BY_ID = 'room_restaurant_by_id'

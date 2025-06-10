@@ -13,6 +13,8 @@ import { UpdateMenuItemsDto } from './dto/update-menu-items.dto'
 import { callGeminiAPI } from 'src/utils/gemini.api'
 import { createWorker } from 'tesseract.js'
 import { sendMessageToKafka } from 'src/utils/kafka'
+import { deleteCacheIO, getCacheIO, setCacheIO } from 'src/utils/cache'
+import { KEY_LIST_MENU_ITEM_RESTAURANT } from 'src/constants/key.redis'
 
 @Injectable()
 export class MenuItemsService {
@@ -46,6 +48,7 @@ export class MenuItemsService {
           sendObject: 'all_account'
         })
       })
+      await deleteCacheIO(`${KEY_LIST_MENU_ITEM_RESTAURANT}:${account.account_restaurant_id}`)
       return menu
     } catch (error) {
       saveLogSystem({
@@ -106,7 +109,7 @@ export class MenuItemsService {
           sendObject: 'all_account'
         })
       })
-
+      await deleteCacheIO(`${KEY_LIST_MENU_ITEM_RESTAURANT}:${account.account_restaurant_id}`)
       return update
     } catch (error) {
       saveLogSystem({
@@ -140,6 +143,7 @@ export class MenuItemsService {
           sendObject: 'all_account'
         })
       })
+      await deleteCacheIO(`${KEY_LIST_MENU_ITEM_RESTAURANT}:${account.account_restaurant_id}`)
       return deleted
     } catch (error) {
       saveLogSystem({
@@ -173,6 +177,7 @@ export class MenuItemsService {
           sendObject: 'all_account'
         })
       })
+      await deleteCacheIO(`${KEY_LIST_MENU_ITEM_RESTAURANT}:${account.account_restaurant_id}`)
       return restore
     } catch (error) {
       saveLogSystem({
@@ -212,6 +217,7 @@ export class MenuItemsService {
           sendObject: 'all_account'
         })
       })
+      await deleteCacheIO(`${KEY_LIST_MENU_ITEM_RESTAURANT}:${account.account_restaurant_id}`)
       return update
     } catch (error) {
       saveLogSystem({
@@ -411,7 +417,16 @@ ${text}
 
   async findAllMenuItemsByResId({ mitems_res_id }: { mitems_res_id: string }): Promise<MenuItemsEntity[]> {
     try {
-      return this.menuItemsQuery.getMenuItemsByRestaurantId({ mitems_res_id })
+      const listMenuItems = await getCacheIO(`${KEY_LIST_MENU_ITEM_RESTAURANT}:${mitems_res_id}`)
+      if (listMenuItems) {
+        console.log('Data from cache');
+        return listMenuItems
+      }
+
+      const data = await this.menuItemsQuery.getMenuItemsByRestaurantId({ mitems_res_id })
+      await setCacheIO(`${KEY_LIST_MENU_ITEM_RESTAURANT}:${mitems_res_id}`, data)
+      console.log('Data from database');
+      return data
     } catch (error) {
       saveLogSystem({
         action: 'findAllMenuItemsByResId',

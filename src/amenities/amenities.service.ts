@@ -11,6 +11,8 @@ import { AmenitiesEntity } from './entities/amenities.entity'
 import { UpdateAmenitiesDto } from './dto/update-amenities.dto'
 import { UpdateStatusAmenitiesDto } from './dto/update-status-amenities.dto'
 import { sendMessageToKafka } from 'src/utils/kafka'
+import { deleteCacheIO, getCacheIO, setCacheIO } from 'src/utils/cache'
+import { KEY_LIST_AMENITIES_RESTAURANT } from 'src/constants/key.redis'
 
 
 @Injectable()
@@ -44,6 +46,9 @@ export class AmenitiesService {
           sendObject: 'all_account'
         })
       })
+
+      // Xóa cache khi tạo mới tiện ích
+      await deleteCacheIO(`${KEY_LIST_AMENITIES_RESTAURANT}:${account.account_restaurant_id}`)
 
       return ame
     } catch (error) {
@@ -105,6 +110,8 @@ export class AmenitiesService {
         })
       })
 
+      await deleteCacheIO(`${KEY_LIST_AMENITIES_RESTAURANT}:${account.account_restaurant_id}`)
+
       return update
 
     } catch (error) {
@@ -139,6 +146,7 @@ export class AmenitiesService {
           sendObject: 'all_account'
         })
       })
+      await deleteCacheIO(`${KEY_LIST_AMENITIES_RESTAURANT}:${account.account_restaurant_id}`)
       return deleted
     } catch (error) {
       saveLogSystem({
@@ -172,6 +180,7 @@ export class AmenitiesService {
           sendObject: 'all_account'
         })
       })
+      await deleteCacheIO(`${KEY_LIST_AMENITIES_RESTAURANT}:${account.account_restaurant_id}`)
       return restore
     } catch (error) {
       saveLogSystem({
@@ -211,6 +220,7 @@ export class AmenitiesService {
           sendObject: 'all_account'
         })
       })
+      await deleteCacheIO(`${KEY_LIST_AMENITIES_RESTAURANT}:${account.account_restaurant_id}`)
       return update
     } catch (error) {
       saveLogSystem({
@@ -325,7 +335,15 @@ export class AmenitiesService {
 
   async findAllAmenitiesByResId({ ame_res_id }: { ame_res_id: string }): Promise<AmenitiesEntity[]> {
     try {
-      return this.amenitiesQuery.getAmenitiesByRestaurantId({ ame_res_id })
+      const listAme = await getCacheIO(`${KEY_LIST_AMENITIES_RESTAURANT}:${ame_res_id}`)
+      if (listAme) {
+        console.log('Data amenities from cache')
+        return listAme
+      };
+      const data = await this.amenitiesQuery.getAmenitiesByRestaurantId({ ame_res_id })
+      setCacheIO(`${KEY_LIST_AMENITIES_RESTAURANT}:${ame_res_id}`, data)
+      console.log('Data amenities from database')
+      return data
     } catch (error) {
       saveLogSystem({
         action: 'findAllAmenitiesByResId',
