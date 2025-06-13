@@ -9,6 +9,7 @@ export class CronService {
 
   @Cron('* * * * *')
   async checkbookRoomTimeouts() {
+    console.log('checkbookRoomTimeouts');
     const queryRunner = this.dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
