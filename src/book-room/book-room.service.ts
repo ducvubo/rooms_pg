@@ -13,6 +13,7 @@ import { sendMessageToKafka } from 'src/utils/kafka';
 import { IAccount } from 'src/guard/interface/account.interface';
 import { ResultPagination } from 'src/interface/resultPagination.interface';
 import kafkaInstance from '../config/kafka.config'
+import { RoomsEntity } from 'src/rooms/entities/rooms.entity';
 
 // export enum BookRoomStatus {
 //   NEW_CREATED = 'NEW_CREATED',
@@ -108,13 +109,15 @@ export class BookRoomService implements OnModuleInit {
       await queryRunner.connect()
       await queryRunner.startTransaction()
 
-      const { amenities, bkr_ame, bkr_email, bkr_note, bkr_phone, bkr_res_id, bkr_time_end, bkr_time_start, menu_items, bkr_link_confirm } = createBookRoomDto
+      const { amenities, bkr_ame, bkr_email, bkr_note, bkr_phone, bkr_res_id, bkr_time_end, bkr_time_start, menu_items, bkr_link_confirm, room_id } = createBookRoomDto
 
-      //check xem có đơn đặt phòng nào cùng thời gian không loại trừ các đơn OVERTIME_GUEST, CANCEL_GUEST, CANCEL_RESTAURANT, GUEST_EXCEPTION, GUEST_CHECK_IN, GUEST_CHECK_OUT, GUEST_CHECK_OUT_OVERTIME, NO_SHOW, DONE_COMPLAINT, RESTAURANT_EXCEPTION, RESTAURANT_NO_DEPOSIT, RESTAURANT_REFUND_DEPOSIT, RESTAURANT_REFUND_ONE_THIRD_DEPOSIT, RESTAURANT_REFUND_ONE_TWO_DEPOSITE, RESTAURANT_NO_DEPOSIT, IN_USE, RESTAURANT_CONFIRM_PAYMENT, GUEST_COMPLAINT
+      //check xem có đơn đặt phòng nào cùng thời gian loại trừ các đơn OVERTIME_GUEST, CANCEL_GUEST, CANCEL_RESTAURANT, GUEST_EXCEPTION, GUEST_CHECK_IN, GUEST_CHECK_OUT, GUEST_CHECK_OUT_OVERTIME, NO_SHOW, DONE_COMPLAINT, RESTAURANT_EXCEPTION, RESTAURANT_NO_DEPOSIT, RESTAURANT_REFUND_DEPOSIT, RESTAURANT_REFUND_ONE_THIRD_DEPOSIT, RESTAURANT_REFUND_ONE_TWO_DEPOSITE, RESTAURANT_NO_DEPOSIT, IN_USE, RESTAURANT_CONFIRM_PAYMENT, GUEST_COMPLAINT
       const bookRoomExist = await queryRunner.manager.findOne(BookRoomEntity, {
         where: {
           bkr_res_id: bkr_res_id,
-          bkr_time_start: Between(new Date(bkr_time_start), new Date(bkr_time_end)),
+          bkr_room_id: room_id,
+          bkr_time_start: LessThanOrEqual(new Date(bkr_time_end)),
+          bkr_time_end: MoreThanOrEqual(new Date(bkr_time_start)),
           bkr_status: Not(In([BookRoomStatus.OVERTIME_GUEST, BookRoomStatus.CANCEL_GUEST, BookRoomStatus.CANCEL_RESTAURANT, BookRoomStatus.GUEST_EXCEPTION, BookRoomStatus.GUEST_CHECK_IN, BookRoomStatus.GUEST_CHECK_OUT, BookRoomStatus.GUEST_CHECK_OUT_OVERTIME, BookRoomStatus.NO_SHOW, BookRoomStatus.DONE_COMPLAINT, BookRoomStatus.RESTAURANT_EXCEPTION, BookRoomStatus.RESTAURANT_NO_DEPOSIT, BookRoomStatus.RESTAURANT_REFUND_DEPOSIT, BookRoomStatus.RESTAURANT_REFUND_ONE_THIRD_DEPOSIT, BookRoomStatus.RESTAURANT_REFUND_ONE_TWO_DEPOSITE, BookRoomStatus.RESTAURANT_NO_DEPOSIT, BookRoomStatus.IN_USE, BookRoomStatus.RESTAURANT_CONFIRM_PAYMENT, BookRoomStatus.GUEST_COMPLAINT]))
         }
       })
@@ -123,8 +126,23 @@ export class BookRoomService implements OnModuleInit {
         throw new BadRequestError('Đã có đơn đặt phòng trong thời gian này')
       }
 
+      const roomExist = await queryRunner.manager.findOne(RoomsEntity, {
+        where: {
+          room_id: room_id,
+          room_res_id: bkr_res_id,
+          room_status: 'enable'
+        }
+      })
+
+      if (!roomExist) {
+        throw new BadRequestError('Phòng không tồn tại')
+      }
+
       const bookRoom = await queryRunner.manager.save(BookRoomEntity, {
         bkr_ame, bkr_email, bkr_note, bkr_phone, bkr_res_id, bkr_time_end, bkr_time_start, bkr_guest_id,
+        bkr_room_id: room_id,
+        bkr_base_price: roomExist.room_base_price,
+        bkr_deposit_price: roomExist.room_deposit,
         bkr_status: BookRoomStatus.NEW_CREATED,
         bkr_detail_history: JSON.stringify([
           {
@@ -358,6 +376,8 @@ export class BookRoomService implements OnModuleInit {
         }
       ])
 
+      await this.bookRoomRepo.save(bookRoomExist)
+
       return bookRoomExist
     } catch (error) {
       saveLogSystem({
@@ -394,6 +414,8 @@ export class BookRoomService implements OnModuleInit {
           time: new Date()
         }
       ])
+
+      await this.bookRoomRepo.save(bookRoomExist)
 
       return bookRoomExist
     } catch (error) {
@@ -1169,7 +1191,7 @@ export class BookRoomService implements OnModuleInit {
         },
         skip: (pageIndex - 1) * pageSize,
         take: pageSize,
-        relations: ['menuItems', 'amenities']
+        relations: ['menuItems', 'amenities', 'room']
       })
 
 
@@ -1253,7 +1275,7 @@ export class BookRoomService implements OnModuleInit {
         },
         skip: (pageIndex - 1) * pageSize,
         take: pageSize,
-        relations: ['menuItems', 'amenities']
+        relations: ['menuItems', 'amenities', 'room']
       })
 
       const totalPage = Math.ceil(total / pageSize)

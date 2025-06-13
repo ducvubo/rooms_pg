@@ -6,6 +6,10 @@ export class CreateBookRoomDto {
   @IsString({ message: "Nhà hàng phải là chuỗi" })
   bkr_res_id: string
 
+  @IsNotEmpty({ message: "Nhà hàng không được để trống" })
+  @IsString({ message: "Nhà hàng phải là chuỗi" })
+  room_id: string
+
   @IsNotEmpty({ message: "Tên khách hàng không được để trống" })
   @IsString({ message: "Tên khách hàng phải là chuỗi" })
   bkr_ame: string

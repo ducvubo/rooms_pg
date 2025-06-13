@@ -4,8 +4,11 @@ import {
   Column,
   PrimaryGeneratedColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
+import { RoomsEntity } from 'src/rooms/entities/rooms.entity'
 import { AmenitiesSnapEntity } from './amenities-snap.entity'
 import { MenuItemsSnapEntity } from './menu-itmes-snap.entity'
 
@@ -40,6 +43,9 @@ export class BookRoomEntity extends SampleEntity {
 
   @Column('varchar', { length: 24 })
   bkr_res_id?: string
+
+  @Column('varchar', { length: 36 })
+  bkr_room_id?: string
 
   @Column('varchar', { length: 255 })
   bkr_guest_id?: string
@@ -102,9 +108,20 @@ export class BookRoomEntity extends SampleEntity {
   @Column('int', { nullable: true })
   bkr_plus_price?: number
 
+  @Column('int', { nullable: true })
+  bkr_base_price?: number
+
+  @Column('int', { nullable: true })
+  bkr_deposit_price?: number
+
   @OneToMany(() => AmenitiesSnapEntity, (amenity) => amenity.bookRoom)
   amenities?: AmenitiesSnapEntity[]
 
   @OneToMany(() => MenuItemsSnapEntity, (menuItem) => menuItem.bookRoom)
   menuItems?: MenuItemsSnapEntity[]
+
+  // thêm quan hệ với room
+  @ManyToOne(() => RoomsEntity, (room) => room.bookings, { eager: false })
+  @JoinColumn({ name: 'bkr_room_id', referencedColumnName: 'room_id' })
+  room?: RoomsEntity
 }

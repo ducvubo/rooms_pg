@@ -1,3 +1,4 @@
+import { BookRoomEntity } from 'src/book-room/entities/book-room.entity'
 import { ROOMS_ELASTICSEARCH_INDEX } from 'src/constants/index.elasticsearch'
 import { addDocToElasticsearch, updateDocByElasticsearch } from 'src/utils/elasticsearch'
 import { SampleEntity } from 'src/utils/sample.entity'
@@ -50,6 +51,9 @@ export class RoomsEntity extends SampleEntity {
 
   @Column('varchar', { length: 255, default: 'enable' })
   room_status?: 'enable' | 'disable'
+
+  @OneToMany(() => BookRoomEntity, (booking) => booking.room)
+  bookings?: BookRoomEntity[]
 }
 
 @EventSubscriber()
