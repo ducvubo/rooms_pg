@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, DataSource, In, LessThanOrEqual, Like, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { AmenitiesSnapEntity } from './entities/amenities-snap.entity';
 import { BookRoomEntity, BookRoomStatus } from './entities/book-room.entity';
 import { CreateBookRoomDto } from './dto/create-book-room.dto';
@@ -110,7 +110,18 @@ export class BookRoomService implements OnModuleInit {
 
       const { amenities, bkr_ame, bkr_email, bkr_note, bkr_phone, bkr_res_id, bkr_time_end, bkr_time_start, menu_items, bkr_link_confirm } = createBookRoomDto
 
+      //check xem có đơn đặt phòng nào cùng thời gian không loại trừ các đơn OVERTIME_GUEST, CANCEL_GUEST, CANCEL_RESTAURANT, GUEST_EXCEPTION, GUEST_CHECK_IN, GUEST_CHECK_OUT, GUEST_CHECK_OUT_OVERTIME, NO_SHOW, DONE_COMPLAINT, RESTAURANT_EXCEPTION, RESTAURANT_NO_DEPOSIT, RESTAURANT_REFUND_DEPOSIT, RESTAURANT_REFUND_ONE_THIRD_DEPOSIT, RESTAURANT_REFUND_ONE_TWO_DEPOSITE, RESTAURANT_NO_DEPOSIT, IN_USE, RESTAURANT_CONFIRM_PAYMENT, GUEST_COMPLAINT
+      const bookRoomExist = await queryRunner.manager.findOne(BookRoomEntity, {
+        where: {
+          bkr_res_id: bkr_res_id,
+          bkr_time_start: Between(new Date(bkr_time_start), new Date(bkr_time_end)),
+          bkr_status: Not(In([BookRoomStatus.OVERTIME_GUEST, BookRoomStatus.CANCEL_GUEST, BookRoomStatus.CANCEL_RESTAURANT, BookRoomStatus.GUEST_EXCEPTION, BookRoomStatus.GUEST_CHECK_IN, BookRoomStatus.GUEST_CHECK_OUT, BookRoomStatus.GUEST_CHECK_OUT_OVERTIME, BookRoomStatus.NO_SHOW, BookRoomStatus.DONE_COMPLAINT, BookRoomStatus.RESTAURANT_EXCEPTION, BookRoomStatus.RESTAURANT_NO_DEPOSIT, BookRoomStatus.RESTAURANT_REFUND_DEPOSIT, BookRoomStatus.RESTAURANT_REFUND_ONE_THIRD_DEPOSIT, BookRoomStatus.RESTAURANT_REFUND_ONE_TWO_DEPOSITE, BookRoomStatus.RESTAURANT_NO_DEPOSIT, BookRoomStatus.IN_USE, BookRoomStatus.RESTAURANT_CONFIRM_PAYMENT, BookRoomStatus.GUEST_COMPLAINT]))
+        }
+      })
 
+      if (bookRoomExist) {
+        throw new BadRequestError('Đã có đơn đặt phòng trong thời gian này')
+      }
 
       const bookRoom = await queryRunner.manager.save(BookRoomEntity, {
         bkr_ame, bkr_email, bkr_note, bkr_phone, bkr_res_id, bkr_time_end, bkr_time_start, bkr_guest_id,
