@@ -16,6 +16,7 @@ import { BookRoomEntity } from './book-room/entities/book-room.entity'
 import { AmenitiesSnapEntity } from './book-room/entities/amenities-snap.entity'
 import { MenuItemsSnapEntity } from './book-room/entities/menu-itmes-snap.entity'
 import { ScheduleModule } from '@nestjs/schedule'
+import { CronService } from './cron/cron.service'
 
 @Module({
   imports: [
@@ -52,6 +53,6 @@ import { ScheduleModule } from '@nestjs/schedule'
     BookRoomModule
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [AppService, CronService]
 })
 export class AppModule { }
