@@ -17,6 +17,7 @@ import { AmenitiesSnapEntity } from './book-room/entities/amenities-snap.entity'
 import { MenuItemsSnapEntity } from './book-room/entities/menu-itmes-snap.entity'
 import { ScheduleModule } from '@nestjs/schedule'
 import { CronService } from './cron/cron.service'
+import { CronModule } from './cron/cron.module'
 
 @Module({
   imports: [
@@ -50,7 +51,8 @@ import { CronService } from './cron/cron.service'
     MenuItemsModule,
     AmenitiesModule,
     RoomsModule,
-    BookRoomModule
+    BookRoomModule,
+    CronModule
   ],
   controllers: [AppController],
   providers: [AppService, CronService]
