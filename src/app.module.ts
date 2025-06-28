@@ -27,8 +27,8 @@ import { CronModule } from './cron/cron.module'
     ScheduleModule.forRoot({}),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: '160.191.245.32',
-      port: 30316,
+      host: '160.187.229.179',
+      port: 3316,
       username: 'root',
       password: 'Duc17052003*',
       database: 'RoomPG',
